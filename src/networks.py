@@ -595,7 +595,7 @@ class GaussianNoiseLayer(nn.Module):
   def forward(self, x):
     if self.training == False:
       return x
-    noise = Variable(torch.randn(x.size()).cuda(x.get_device()))
+    noise = Variable(torch.randn(x.size()).to(x.device))
     return x + noise
 
 class ReLUINSConvTranspose2d(nn.Module):
