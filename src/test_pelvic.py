@@ -34,7 +34,7 @@ def main():
   # model
   print('\n--- load model ---')
   model = DRIT(opts)
-  model.setgpu(opts.gpu)
+  model.setgpu(0)
   model.resume(os.path.join(opts.checkpoint_dir, "final.pth"), train=False)
   model.eval()
 
@@ -42,6 +42,7 @@ def main():
   test_ts_psnr = numpy.zeros((test_data_t.shape[0], 1), numpy.float32)
   test_st_list = []
   test_ts_list = []
+  msg_detail = ""
   with torch.no_grad():
     for i in range(test_data_s.shape[0]):
       test_st = numpy.zeros(test_data_s.shape[1:], numpy.float32)
@@ -73,13 +74,16 @@ def main():
       test_st_list.append(test_st)
       test_ts_list.append(test_ts)
 
+      msg_detail += "  %s_psnr: %f\n" % (test_ids_t[i], ts_psnr)
+
   msg = "  test_st_psnr:%f/%f  test_ts_psnr:%f/%f" % \
         (test_st_psnr.mean(), test_st_psnr.std(), test_ts_psnr.mean(), test_ts_psnr.std())
   print(msg)
+  print(msg_detail)
 
   if opts.result_dir:
     with open(os.path.join(opts.result_dir, "result.txt"), "w") as f:
-      f.write(msg)
+      f.write(msg + msg_detail)
 
     numpy.save(os.path.join(opts.result_dir, "st_psnr.npy"), test_st_psnr)
     numpy.save(os.path.join(opts.result_dir, "ts_psnr.npy"), test_ts_psnr)
