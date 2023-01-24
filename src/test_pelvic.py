@@ -8,6 +8,7 @@ import sys
 import numpy
 import pdb
 import skimage.io
+from skimage.metrics import structural_similarity as ssim
 
 sys.path.append(os.path.join("..", "..", "util"))
 import common_metrics
@@ -29,7 +30,7 @@ def main():
       os.makedirs(opts.result_dir)
 
   test_ids_t = common_pelvic.load_data_ids(opts.dataroot, "testing", "treat")
-  test_data_s, test_data_t, _, _ = common_pelvic.load_test_data(opts.dataroot, mini=opts.mini)
+  test_data_s, test_data_t, _, _ = common_pelvic.load_test_data(opts.dataroot, valid=True)
 
   # model
   print('\n--- load model ---')
@@ -38,19 +39,21 @@ def main():
   model.resume(os.path.join(opts.checkpoint_dir, "final.pth"), train=False)
   model.eval()
 
-  test_st_psnr = numpy.zeros((test_data_s.shape[0], 1), numpy.float32)
-  test_ts_psnr = numpy.zeros((test_data_t.shape[0], 1), numpy.float32)
+  test_st_psnr = numpy.zeros((len(test_data_s), 1), numpy.float32)
+  test_ts_psnr = numpy.zeros((len(test_data_s), 1), numpy.float32)
+  test_st_ssim = numpy.zeros((len(test_data_s), 1), numpy.float32)
+  test_ts_ssim = numpy.zeros((len(test_data_s), 1), numpy.float32)
   test_st_list = []
   test_ts_list = []
   msg_detail = ""
   with torch.no_grad():
-    for i in range(test_data_s.shape[0]):
-      test_st = numpy.zeros(test_data_s.shape[1:], numpy.float32)
-      test_ts = numpy.zeros(test_data_t.shape[1:], numpy.float32)
-      used = numpy.zeros(test_data_s.shape[1:], numpy.float32)
-      for j in range(test_data_s.shape[1] - opts.input_dim_a + 1):
-        test_patch_s = torch.tensor(test_data_s[i:i + 1, j:j + opts.input_dim_a, :, :], device=device)
-        test_patch_t = torch.tensor(test_data_t[i:i + 1, j:j + opts.input_dim_a, :, :], device=device)
+    for i in range(len(test_data_s)):
+      test_st = numpy.zeros(test_data_s[0].shape, numpy.float32)
+      test_ts = numpy.zeros(test_data_t[0].shape, numpy.float32)
+      used = numpy.zeros(test_data_s[0].shape, numpy.float32)
+      for j in range(test_data_s[0].shape[0] - opts.input_dim_a + 1):
+        test_patch_s = torch.tensor(test_data_s[i][j:j + opts.input_dim_a, :, :], device=device)
+        test_patch_t = torch.tensor(test_data_t[i][j:j + opts.input_dim_a, :, :], device=device)
 
         ret_st = model.test_forward_transfer(test_patch_s, test_patch_t, a2b=True)
         ret_ts = model.test_forward_transfer(test_patch_t, test_patch_s, a2b=False)
@@ -68,16 +71,21 @@ def main():
 
       st_psnr = common_metrics.psnr(test_st, test_data_t[i])
       ts_psnr = common_metrics.psnr(test_ts, test_data_s[i])
+      st_ssim = ssim(test_st, test_data_t[i])
+      ts_ssim = ssim(test_ts, test_data_s[i])
 
       test_st_psnr[i] = st_psnr
       test_ts_psnr[i] = ts_psnr
+      test_st_ssim[i] = st_ssim
+      test_ts_ssim[i] = ts_ssim
       test_st_list.append(test_st)
       test_ts_list.append(test_ts)
 
-      msg_detail += "  %s_psnr: %f\n" % (test_ids_t[i], ts_psnr)
+      msg_detail += "  %s_psnr: %f  ssim: %f\n" % (test_ids_t[i], ts_psnr, ts_ssim)
 
-  msg = "  test_st_psnr:%f/%f  test_ts_psnr:%f/%f" % \
-        (test_st_psnr.mean(), test_st_psnr.std(), test_ts_psnr.mean(), test_ts_psnr.std())
+  msg = "  test_st_psnr:%f/%f  test_st_ssim:%f/%f  test_ts_psnr:%f/%f  test_ts_ssim:%f/%f" % \
+        (test_st_psnr.mean(), test_st_psnr.std(), test_st_ssim.mean(), test_st_ssim.std(),
+         test_ts_psnr.mean(), test_ts_psnr.std(), test_ts_ssim.mean(), test_ts_ssim.std())
   print(msg)
   print(msg_detail)
 
