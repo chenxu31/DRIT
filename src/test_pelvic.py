@@ -10,7 +10,7 @@ import pdb
 import skimage.io
 from skimage.metrics import structural_similarity as ssim
 
-sys.path.append(os.path.join("..", "..", "util"))
+sys.path.append(r"E:\我的坚果云\sourcecode\python\util")
 import common_metrics
 import common_pelvic_pt as common_pelvic
 
@@ -48,12 +48,12 @@ def main():
   msg_detail = ""
   with torch.no_grad():
     for i in range(len(test_data_s)):
-      test_st = numpy.zeros(test_data_s[0].shape, numpy.float32)
-      test_ts = numpy.zeros(test_data_t[0].shape, numpy.float32)
-      used = numpy.zeros(test_data_s[0].shape, numpy.float32)
-      for j in range(test_data_s[0].shape[0] - opts.input_dim_a + 1):
-        test_patch_s = torch.tensor(test_data_s[i][j:j + opts.input_dim_a, :, :], device=device)
-        test_patch_t = torch.tensor(test_data_t[i][j:j + opts.input_dim_a, :, :], device=device)
+      test_st = numpy.zeros(test_data_s[i].shape, numpy.float32)
+      test_ts = numpy.zeros(test_data_t[i].shape, numpy.float32)
+      used = numpy.zeros(test_data_s[i].shape, numpy.float32)
+      for j in range(test_data_s[i].shape[0] - opts.input_dim_a + 1):
+        test_patch_s = torch.tensor(numpy.expand_dims(test_data_s[i][j:j + opts.input_dim_a, :, :], 0), device=device)
+        test_patch_t = torch.tensor(numpy.expand_dims(test_data_t[i][j:j + opts.input_dim_a, :, :], 0), device=device)
 
         ret_st = model.test_forward_transfer(test_patch_s, test_patch_t, a2b=True)
         ret_ts = model.test_forward_transfer(test_patch_t, test_patch_s, a2b=False)
@@ -65,9 +65,11 @@ def main():
       assert used.min() > 0
       test_st /= used
       test_ts /= used
-
+      
+      """
       if opts.result_dir:
         common_pelvic.save_nii(test_ts, os.path.join(opts.result_dir, "syn_%s.nii.gz" % test_ids_t[i]))
+      """
 
       st_psnr = common_metrics.psnr(test_st, test_data_t[i])
       ts_psnr = common_metrics.psnr(test_ts, test_data_s[i])
@@ -83,7 +85,7 @@ def main():
 
       msg_detail += "  %s_psnr: %f  ssim: %f\n" % (test_ids_t[i], ts_psnr, ts_ssim)
 
-  msg = "  test_st_psnr:%f/%f  test_st_ssim:%f/%f  test_ts_psnr:%f/%f  test_ts_ssim:%f/%f" % \
+  msg = "  test_st_psnr:%f/%f  test_st_ssim:%f/%f  test_ts_psnr:%f/%f  test_ts_ssim:%f/%f\n" % \
         (test_st_psnr.mean(), test_st_psnr.std(), test_st_ssim.mean(), test_st_ssim.std(),
          test_ts_psnr.mean(), test_ts_psnr.std(), test_ts_ssim.mean(), test_ts_ssim.std())
   print(msg)
