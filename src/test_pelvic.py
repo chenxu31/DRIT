@@ -36,13 +36,13 @@ def main():
   print('\n--- load model ---')
   model = DRIT(opts)
   model.setgpu(0)
-  model.resume(os.path.join(opts.checkpoint_dir, "final.pth"), train=False)
+  model.resume(os.path.join(opts.checkpoint_dir, "best.pth"), train=False)
   model.eval()
 
   test_st_psnr = numpy.zeros((len(test_data_s), 1), numpy.float32)
-  test_ts_psnr = numpy.zeros((len(test_data_s), 1), numpy.float32)
+  test_ts_psnr = numpy.zeros((len(test_data_t), 1), numpy.float32)
   test_st_ssim = numpy.zeros((len(test_data_s), 1), numpy.float32)
-  test_ts_ssim = numpy.zeros((len(test_data_s), 1), numpy.float32)
+  test_ts_ssim = numpy.zeros((len(test_data_t), 1), numpy.float32)
   test_st_list = []
   test_ts_list = []
   msg_detail = ""
