@@ -7,6 +7,7 @@ import os
 import numpy
 import pdb
 import skimage.io
+import platform
 
 
 if platform.system() == 'Windows':
@@ -68,66 +69,66 @@ def main():
       images_b = data_t["image"].to(device)
 
       # update model
-      if (it + 1) % opts.d_iter != 0 and it < opts.max_iter - 2:
+      if (batch_id + 1) % opts.d_iter != 0 and batch_id < len(dataloader_s) - 2:
         model.update_D_content(images_a, images_b)
         continue
       else:
         model.update_D(images_a, images_b)
         model.update_EG()
 
-      if (it + 1) % opts.display_freq == 0 and opts.do_validation:
-        val_st_psnr = numpy.zeros((val_data_s.shape[0], 1), numpy.float32)
-        val_ts_psnr = numpy.zeros((val_data_t.shape[0], 1), numpy.float32)
-        val_st_list = []
-        val_ts_list = []
-        with torch.no_grad():
-          for i in range(val_data_s.shape[0]):
-            val_st = numpy.zeros(val_data_s.shape[1:], numpy.float32)
-            val_ts = numpy.zeros(val_data_t.shape[1:], numpy.float32)
-            used = numpy.zeros(val_data_s.shape[1:], numpy.float32)
-            for j in range(val_data_s.shape[1] - opts.input_dim_a + 1):
-              val_patch_s = torch.tensor(val_data_s[i:i + 1, j:j + opts.input_dim_a, :, :], device=device)
-              val_patch_t = torch.tensor(val_data_t[i:i + 1, j:j + opts.input_dim_a, :, :], device=device)
+    if (it + 1) % opts.display_freq == 0 and opts.do_validation:
+      val_st_psnr = numpy.zeros((val_data_s.shape[0], 1), numpy.float32)
+      val_ts_psnr = numpy.zeros((val_data_t.shape[0], 1), numpy.float32)
+      val_st_list = []
+      val_ts_list = []
+      with torch.no_grad():
+        for i in range(val_data_s.shape[0]):
+          val_st = numpy.zeros(val_data_s.shape[1:], numpy.float32)
+          val_ts = numpy.zeros(val_data_t.shape[1:], numpy.float32)
+          used = numpy.zeros(val_data_s.shape[1:], numpy.float32)
+          for j in range(val_data_s.shape[1] - opts.input_dim_a + 1):
+            val_patch_s = torch.tensor(val_data_s[i:i + 1, j:j + opts.input_dim_a, :, :], device=device)
+            val_patch_t = torch.tensor(val_data_t[i:i + 1, j:j + opts.input_dim_a, :, :], device=device)
 
-              ret_st = model.test_forward_transfer(val_patch_s, val_patch_t, a2b=True)
-              ret_ts = model.test_forward_transfer(val_patch_t, val_patch_s, a2b=False)
+            ret_st = model.test_forward_transfer(val_patch_s, val_patch_t, a2b=True)
+            ret_ts = model.test_forward_transfer(val_patch_t, val_patch_s, a2b=False)
 
-              val_st[j:j + opts.input_dim_a, :, :] += ret_st.cpu().detach().numpy()[0]
-              val_ts[j:j + opts.input_dim_a, :, :] += ret_ts.cpu().detach().numpy()[0]
-              used[j:j + opts.input_dim_a, :, :] += 1
+            val_st[j:j + opts.input_dim_a, :, :] += ret_st.cpu().detach().numpy()[0]
+            val_ts[j:j + opts.input_dim_a, :, :] += ret_ts.cpu().detach().numpy()[0]
+            used[j:j + opts.input_dim_a, :, :] += 1
 
-            assert used.min() > 0
-            val_st /= used
-            val_ts /= used
+          assert used.min() > 0
+          val_st /= used
+          val_ts /= used
 
-            st_psnr = common_metrics.psnr(val_st, val_data_t[i])
-            ts_psnr = common_metrics.psnr(val_ts, val_data_s[i])
+          st_psnr = common_metrics.psnr(val_st, val_data_t[i])
+          ts_psnr = common_metrics.psnr(val_ts, val_data_s[i])
 
-            val_st_psnr[i] = st_psnr
-            val_ts_psnr[i] = ts_psnr
-            val_st_list.append(val_st)
-            val_ts_list.append(val_ts)
+          val_st_psnr[i] = st_psnr
+          val_ts_psnr[i] = ts_psnr
+          val_st_list.append(val_st)
+          val_ts_list.append(val_ts)
 
-        msg = "Iter:%d  val_st_psnr:%f/%f  val_ts_psnr:%f/%f" % \
-               (it + 1, val_st_psnr.mean(), val_st_psnr.std(), val_ts_psnr.mean(), val_ts_psnr.std())
-        gen_images_test = numpy.concatenate([val_data_s[0], val_st_list[0], val_ts_list[0], val_data_t[0]], 2)
-        gen_images_test = numpy.expand_dims(gen_images_test, 0).astype(numpy.float32)
-        gen_images_test = common_brats.generate_display_image(gen_images_test, is_seg=False)
+      msg = "Iter:%d  val_st_psnr:%f/%f  val_ts_psnr:%f/%f" % \
+             (it + 1, val_st_psnr.mean(), val_st_psnr.std(), val_ts_psnr.mean(), val_ts_psnr.std())
+      gen_images_test = numpy.concatenate([val_data_s[0], val_st_list[0], val_ts_list[0], val_data_t[0]], 2)
+      gen_images_test = numpy.expand_dims(gen_images_test, 0).astype(numpy.float32)
+      gen_images_test = common_brats.generate_display_image(gen_images_test, is_seg=False)
 
-        if opts.display_dir:
-          try:
-            skimage.io.imsave(os.path.join(opts.display_dir, "gen_images_test.jpg"), gen_images_test)
-          except:
-            pass
+      if opts.display_dir:
+        try:
+          skimage.io.imsave(os.path.join(opts.display_dir, "gen_images_test.jpg"), gen_images_test)
+        except:
+          pass
 
-        if val_ts_psnr.mean() > best_psnr:
-          best_psnr = val_ts_psnr.mean()
+      if val_ts_psnr.mean() > best_psnr:
+        best_psnr = val_ts_psnr.mean()
 
-          if best_psnr > opts.psnr_threshold:
-            model.save(os.path.join(opts.checkpoint_dir, "best.pth"), it, opts.max_epochs)
+        if best_psnr > opts.psnr_threshold:
+          model.save(os.path.join(opts.checkpoint_dir, "best.pth"), it, opts.max_epochs)
 
-        msg += "  best_ts_psnr:%f" % best_psnr
-        print(msg)
+      msg += "  best_ts_psnr:%f" % best_psnr
+      print(msg)
 
   model.save(os.path.join(opts.checkpoint_dir, "final.pth"), it, opts.max_iter)
 
