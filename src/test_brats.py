@@ -42,12 +42,12 @@ def main():
   model.resume(os.path.join(opts.checkpoint_dir, "best.pth"), train=False)
   model.eval()
 
-  test_st_psnr = numpy.zeros((len(test_data_s),), numpy.float32)
-  test_ts_psnr = numpy.zeros((len(test_data_t),), numpy.float32)
-  test_st_ssim = numpy.zeros((len(test_data_s),), numpy.float32)
-  test_ts_ssim = numpy.zeros((len(test_data_t),), numpy.float32)
-  test_st_mae = numpy.zeros((len(test_data_s),), numpy.float32)
-  test_ts_mae = numpy.zeros((len(test_data_t),), numpy.float32)
+  test_st_psnr = numpy.zeros((test_data_s.shape[0],), numpy.float32)
+  test_ts_psnr = numpy.zeros((test_data_t.shape[0],), numpy.float32)
+  test_st_ssim = numpy.zeros((test_data_s.shape[0],), numpy.float32)
+  test_ts_ssim = numpy.zeros((test_data_t.shape[0],), numpy.float32)
+  test_st_mae = numpy.zeros((test_data_s.shape[0],), numpy.float32)
+  test_ts_mae = numpy.zeros((test_data_t.shape[0],), numpy.float32)
   test_st_list = []
   test_ts_list = []
   msg_detail = ""
