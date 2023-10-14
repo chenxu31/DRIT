@@ -36,8 +36,8 @@ def main():
   print('\n--- load dataset ---')
   #torch.autograd.set_detect_anomaly(True)
 
-  dataset_s = common_brats.Dataset(opts.dataroot, modality="t2", n_slices=args.input_dim_a)
-  dataset_t = common_brats.Dataset(opts.dataroot, modality="t1", n_slices=args.input_dim_a)
+  dataset_s = common_brats.Dataset(opts.dataroot, modality="t2", n_slices=opts.input_dim_a)
+  dataset_t = common_brats.Dataset(opts.dataroot, modality="t1", n_slices=opts.input_dim_a)
   dataloader_s = torch.utils.data.DataLoader(dataset_s, batch_size=opts.batch_size, shuffle=True, pin_memory=True, drop_last=True)
   dataloader_t = torch.utils.data.DataLoader(dataset_t, batch_size=opts.batch_size, shuffle=True, pin_memory=True, drop_last=True)
   if opts.do_validation:
@@ -130,7 +130,7 @@ def main():
       msg += "  best_ts_psnr:%f" % best_psnr
       print(msg)
 
-  model.save(os.path.join(opts.checkpoint_dir, "final.pth"), it, opts.max_iter)
+  model.save(os.path.join(opts.checkpoint_dir, "final.pth"), it, opts.max_epochs)
 
 
 if __name__ == '__main__':
