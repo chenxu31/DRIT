@@ -10,7 +10,10 @@ import pdb
 import skimage.io
 from skimage.metrics import structural_similarity as ssim
 
-sys.path.append(r"E:\我的坚果云\sourcecode\python\util")
+if platform.system() == 'Windows':
+  sys.path.append(r"E:\我的坚果云\sourcecode\python\util")
+else:
+  sys.path.append("/home/chenxu/我的坚果云/sourcecode/python/util")
 import common_metrics
 import common_brats
 
@@ -66,11 +69,9 @@ def main():
       assert used.min() > 0
       test_st /= used
       test_ts /= used
-      
-      """
+
       if opts.result_dir:
         common_pelvic.save_nii(test_ts, os.path.join(opts.result_dir, "syn_%s.nii.gz" % test_ids_t[i]))
-      """
 
       st_psnr = common_metrics.psnr(test_st, test_data_t[i])
       ts_psnr = common_metrics.psnr(test_ts, test_data_s[i])
