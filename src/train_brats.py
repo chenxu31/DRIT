@@ -130,7 +130,7 @@ def main():
       msg += "  best_ts_psnr:%f" % best_psnr
       print(msg)
 
-  model.save(os.path.join(opts.checkpoint_dir, "final.pth"), it, opts.max_iter)
+  model.save(os.path.join(opts.checkpoint_dir, "final.pth"), it, opts.max_epochs)
 
 
 if __name__ == '__main__':
