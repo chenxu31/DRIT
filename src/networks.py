@@ -273,7 +273,7 @@ class G(nn.Module):
     decA5 += [ReLUINSConvTranspose2d(tch, tch//2, kernel_size=3, stride=2, padding=1, output_padding=1)]
     tch = tch//2
     decA5 += [nn.ConvTranspose2d(tch, output_dim_a, kernel_size=1, stride=1, padding=0)]
-    decA5 += [nn.Tanh()]
+    #decA5 += [nn.Tanh()]
     self.decA5 = nn.Sequential(*decA5)
 
     tch = ini_tch
@@ -287,7 +287,7 @@ class G(nn.Module):
     decB5 += [ReLUINSConvTranspose2d(tch, tch//2, kernel_size=3, stride=2, padding=1, output_padding=1)]
     tch = tch//2
     decB5 += [nn.ConvTranspose2d(tch, output_dim_b, kernel_size=1, stride=1, padding=0)]
-    decB5 += [nn.Tanh()]
+    #decB5 += [nn.Tanh()]
     self.decB5 = nn.Sequential(*decB5)
 
     self.mlpA = nn.Sequential(
@@ -313,6 +313,7 @@ class G(nn.Module):
     out3 = self.decA3(out2, z3)
     out4 = self.decA4(out3, z4)
     out = self.decA5(out4)
+    out = torch.clamp(out, -1., 1.)
     return out
 
   def forward_b(self, x, z):
@@ -324,6 +325,7 @@ class G(nn.Module):
     out3 = self.decB3(out2, z3)
     out4 = self.decB4(out3, z4)
     out = self.decB5(out4)
+    out = torch.clamp(out, -1., 1.)
     return out
 
 class G_concat(nn.Module):
@@ -345,7 +347,7 @@ class G_concat(nn.Module):
     decA3 = ReLUINSConvTranspose2d(tch, tch//2, kernel_size=3, stride=2, padding=1, output_padding=1)
     tch = tch//2
     tch = tch + self.nz
-    decA4 = [nn.ConvTranspose2d(tch, output_dim_a, kernel_size=1, stride=1, padding=0)]+[nn.Tanh()]
+    decA4 = [nn.ConvTranspose2d(tch, output_dim_a, kernel_size=1, stride=1, padding=0)] #+[nn.Tanh()]
     self.decA1 = nn.Sequential(*decA1)
     self.decA2 = nn.Sequential(*[decA2])
     self.decA3 = nn.Sequential(*[decA3])
@@ -362,7 +364,7 @@ class G_concat(nn.Module):
     decB3 = ReLUINSConvTranspose2d(tch, tch//2, kernel_size=3, stride=2, padding=1, output_padding=1)
     tch = tch//2
     tch = tch + self.nz
-    decB4 = [nn.ConvTranspose2d(tch, output_dim_b, kernel_size=1, stride=1, padding=0)]+[nn.Tanh()]
+    decB4 = [nn.ConvTranspose2d(tch, output_dim_b, kernel_size=1, stride=1, padding=0)] #+[nn.Tanh()]
     self.decB1 = nn.Sequential(*decB1)
     self.decB2 = nn.Sequential(*[decB2])
     self.decB3 = nn.Sequential(*[decB3])
@@ -382,6 +384,7 @@ class G_concat(nn.Module):
     z_img4 = z.view(z.size(0), z.size(1), 1, 1).expand(z.size(0), z.size(1), out3.size(2), out3.size(3))
     x_and_z4 = torch.cat([out3, z_img4], 1)
     out4 = self.decA4(x_and_z4)
+    out4 = torch.clamp(out4, -1., 1.)
     return out4
 
   def forward_b(self, x, z):
@@ -398,6 +401,7 @@ class G_concat(nn.Module):
     z_img4 = z.view(z.size(0), z.size(1), 1, 1).expand(z.size(0), z.size(1), out3.size(2), out3.size(3))
     x_and_z4 = torch.cat([out3, z_img4], 1)
     out4 = self.decB4(x_and_z4)
+    out4 = torch.clamp(out4, -1., 1.)
     return out4
 
 ####################################################################
