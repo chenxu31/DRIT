@@ -8,6 +8,7 @@ import os
 import numpy
 import pdb
 import skimage.io
+import platform
 
 if platform.system() == 'Windows':
     UTIL_DIR = r"E:\我的坚果云\sourcecode\python\util"
