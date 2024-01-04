@@ -39,7 +39,7 @@ def main():
 
   torch.autograd.set_detect_anomaly(True)
 
-  data_iter = common_cmf.DataIterUnpaired(opts.dataroot, device, patch_depth=opts.input_nc,
+  data_iter = common_cmf.DataIterUnpaired(opts.dataroot, device, patch_depth=opts.input_dim_a,
                                           batch_size=opts.batch_size)
   if opts.do_validation:
     val_data_t, val_data_s, _ = common_cmf.load_test_data(opts.dataroot)
