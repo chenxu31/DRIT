@@ -9,6 +9,7 @@ import numpy
 import pdb
 import skimage.io
 from skimage.metrics import structural_similarity as ssim
+import platform
 
 if platform.system() == 'Windows':
     UTIL_DIR = r"E:\我的坚果云\sourcecode\python\util"
@@ -72,15 +73,13 @@ def main():
       test_st /= used
       test_ts /= used
       
-      """
       if opts.result_dir:
-        common_pelvic.save_nii(test_ts, os.path.join(opts.result_dir, "syn_%s.nii.gz" % test_ids_t[i]))
-      """
+        common_cmf.save_nii(test_ts, os.path.join(opts.result_dir, "syn_%d.nii.gz" % i))
 
       st_psnr = common_metrics.psnr(test_st, test_data_t[i])
       ts_psnr = common_metrics.psnr(test_ts, test_data_s[i])
-      st_ssim = ssim(test_st, test_data_t[i])
-      ts_ssim = ssim(test_ts, test_data_s[i])
+      st_ssim = ssim(test_st, test_data_t[i], data_range=2.)
+      ts_ssim = ssim(test_ts, test_data_s[i], data_range=2.)
       st_mae = abs(common_cmf.restore_hu(test_st) - common_cmf.restore_hu(test_data_t[i])).mean()
       ts_mae = abs(common_cmf.restore_hu(test_ts) - common_cmf.restore_hu(test_data_s[i])).mean()
 
@@ -93,7 +92,7 @@ def main():
       test_st_list.append(test_st)
       test_ts_list.append(test_ts)
 
-      msg_detail += "  %s_psnr: %f  ssim: %f  mae: %f\n" % (test_ids_t[i], ts_psnr, ts_ssim, test_ts_mae)
+      msg_detail += "  %d  psnr: %f  ssim: %f  mae: %f\n" % (i, ts_psnr, ts_ssim, ts_mae)
 
   msg = "  test_st_psnr:%f/%f  test_st_ssim:%f/%f  test_ts_psnr:%f/%f  test_ts_ssim:%f/%f  test_ts_mae:%f/%f  test_ts_mae:%f/%f\n" % \
         (test_st_psnr.mean(), test_st_psnr.std(), test_st_ssim.mean(), test_st_ssim.std(),
@@ -110,8 +109,8 @@ def main():
     numpy.save(os.path.join(opts.result_dir, "ts_psnr.npy"), test_ts_psnr)
     numpy.save(os.path.join(opts.result_dir, "st_ssim.npy"), test_st_ssim)
     numpy.save(os.path.join(opts.result_dir, "ts_ssim.npy"), test_ts_ssim)
-    numpy.save(os.path.join(opt.results_dir, "st_mae.npy"), test_st_mae)
-    numpy.save(os.path.join(opt.results_dir, "ts_mae.npy"), test_ts_mae)
+    numpy.save(os.path.join(opts.result_dir, "st_mae.npy"), test_st_mae)
+    numpy.save(os.path.join(opts.result_dir, "ts_mae.npy"), test_ts_mae)
 
 
 if __name__ == '__main__':
