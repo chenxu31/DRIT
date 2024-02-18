@@ -130,6 +130,7 @@ def main():
 
       msg += "  best_ts_psnr:%f" % best_psnr
       print(msg)
+      sys.stdout.flush()
 
   model.save(os.path.join(opts.checkpoint_dir, "final.pth"), it, opts.max_epochs)
 
