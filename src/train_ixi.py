@@ -38,11 +38,11 @@ def main():
   #torch.autograd.set_detect_anomaly(True)
 
   dataset_s = common_ixi.Dataset(opts.dataroot, modality="t2", n_slices=opts.input_dim_a, debug=opts.debug)
-  dataset_t = common_ixi.Dataset(opts.dataroot, modality="t1", n_slices=opts.input_dim_a, debug=opts.debug)
+  dataset_t = common_ixi.Dataset(opts.dataroot, modality="pd", n_slices=opts.input_dim_a, debug=opts.debug)
   dataloader_s = torch.utils.data.DataLoader(dataset_s, batch_size=opts.batch_size, shuffle=True, pin_memory=True, drop_last=True)
   dataloader_t = torch.utils.data.DataLoader(dataset_t, batch_size=opts.batch_size, shuffle=True, pin_memory=True, drop_last=True)
   if opts.do_validation:
-    val_data_t, val_data_s = common_ixi.load_test_data(opts.dataroot, "val")
+    val_data_s, val_data_t = common_ixi.load_test_data(opts.dataroot, "val")
 
   # model
   print('\n--- load model ---')

@@ -33,7 +33,7 @@ def main():
   if opts.result_dir and not os.path.exists(opts.result_dir):
       os.makedirs(opts.result_dir)
 
-  test_data_t, test_data_s = common_ixi.load_test_data(opts.dataroot, "test")
+  test_data_s, test_data_t = common_ixi.load_test_data(opts.dataroot, "test")
 
   # model
   print('\n--- load model ---')
