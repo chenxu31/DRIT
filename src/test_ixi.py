@@ -107,8 +107,8 @@ def main():
     numpy.save(os.path.join(opts.result_dir, "ts_psnr.npy"), test_ts_psnr)
     numpy.save(os.path.join(opts.result_dir, "st_ssim.npy"), test_st_ssim)
     numpy.save(os.path.join(opts.result_dir, "ts_ssim.npy"), test_ts_ssim)
-    numpy.save(os.path.join(opts.result_dir, "st_ssim.npy"), test_st_mae)
-    numpy.save(os.path.join(opts.result_dir, "ts_ssim.npy"), test_ts_mae)
+    numpy.save(os.path.join(opts.result_dir, "st_mae.npy"), test_st_mae)
+    numpy.save(os.path.join(opts.result_dir, "ts_mae.npy"), test_ts_mae)
 
 
 if __name__ == '__main__':
